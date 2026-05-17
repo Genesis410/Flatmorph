@@ -1,19 +1,64 @@
 import { expect, test } from 'vitest';
 import { scan } from '../src/parser.js';
-import { TYPE_ELEM } from '../src/constants.js';
+import { 
+  TYPE_ELEM, 
+  NODE_SIZE, 
+  SLOT_TYPE, 
+  SLOT_DATA, 
+  SLOT_FIRST_CHILD, 
+  SLOT_NEXT_SIBLING, 
+  SLOT_SUBTREE_SIZE 
+} from '../src/constants.js';
 
 test('scans simple div', () => {
   const { arena } = scan('<div></div>');
-  expect(arena[0]).toBe(TYPE_ELEM);
-  expect(arena[2]).toBe('div');
+  expect(arena[SLOT_TYPE]).toBe(TYPE_ELEM);
+  expect(arena[SLOT_DATA]).toBe('div');
+  expect(arena[SLOT_SUBTREE_SIZE]).toBe(NODE_SIZE);
 });
 
-test('scans multiple elements', () => {
+test('scans nested elements', () => {
   const { arena } = scan('<div><span></span></div>');
-  // First element: div
-  expect(arena[0]).toBe(TYPE_ELEM);
-  expect(arena[2]).toBe('div');
-  // Second element: span
-  expect(arena[8]).toBe(TYPE_ELEM);
-  expect(arena[10]).toBe('span');
+  // div at 0
+  expect(arena[SLOT_TYPE]).toBe(TYPE_ELEM);
+  expect(arena[SLOT_DATA]).toBe('div');
+  expect(arena[SLOT_FIRST_CHILD]).toBe(NODE_SIZE); // points to span
+  expect(arena[SLOT_SUBTREE_SIZE]).toBe(2 * NODE_SIZE);
+  
+  // span at NODE_SIZE (8)
+  expect(arena[NODE_SIZE + SLOT_TYPE]).toBe(TYPE_ELEM);
+  expect(arena[NODE_SIZE + SLOT_DATA]).toBe('span');
+  expect(arena[NODE_SIZE + SLOT_FIRST_CHILD]).toBe(-1);
+  expect(arena[NODE_SIZE + SLOT_NEXT_SIBLING]).toBe(-1);
+  expect(arena[NODE_SIZE + SLOT_SUBTREE_SIZE]).toBe(NODE_SIZE);
+});
+
+test('scans siblings', () => {
+  const { arena } = scan('<div><span></span><a></a></div>');
+  // div at 0
+  expect(arena[SLOT_DATA]).toBe('div');
+  expect(arena[SLOT_FIRST_CHILD]).toBe(NODE_SIZE);
+  expect(arena[SLOT_SUBTREE_SIZE]).toBe(3 * NODE_SIZE);
+
+  // span at 8
+  expect(arena[NODE_SIZE + SLOT_DATA]).toBe('span');
+  expect(arena[NODE_SIZE + SLOT_NEXT_SIBLING]).toBe(2 * NODE_SIZE); // points to a
+  expect(arena[NODE_SIZE + SLOT_SUBTREE_SIZE]).toBe(NODE_SIZE);
+
+  // a at 16
+  expect(arena[2 * NODE_SIZE + SLOT_DATA]).toBe('a');
+  expect(arena[2 * NODE_SIZE + SLOT_NEXT_SIBLING]).toBe(-1);
+  expect(arena[2 * NODE_SIZE + SLOT_SUBTREE_SIZE]).toBe(NODE_SIZE);
+});
+
+test('handles attributes with quotes', () => {
+  const { arena } = scan('<div class="foo > bar" id=\'baz\'></div>');
+  expect(arena[SLOT_DATA]).toBe('div');
+  expect(arena[SLOT_SUBTREE_SIZE]).toBe(NODE_SIZE);
+});
+
+test('scans immediate siblings', () => {
+  const { arena } = scan('<img/><span/>');
+  expect(arena[SLOT_DATA]).toBe('img');
+  expect(arena[NODE_SIZE + SLOT_DATA]).toBe('span');
 });
