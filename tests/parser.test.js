@@ -2,6 +2,7 @@ import { expect, test } from 'vitest';
 import { scan } from '../src/parser.js';
 import { 
   TYPE_ELEM, 
+  TYPE_TEXT,
   NODE_SIZE, 
   SLOT_TYPE, 
   SLOT_DATA, 
@@ -15,6 +16,18 @@ test('scans simple div', () => {
   expect(arena[SLOT_TYPE]).toBe(TYPE_ELEM);
   expect(arena[SLOT_DATA]).toBe('div');
   expect(arena[SLOT_SUBTREE_SIZE]).toBe(NODE_SIZE);
+});
+
+test('scans text nodes', () => {
+  const { arena } = scan('<div>hello</div>');
+  // div at 0
+  expect(arena[SLOT_TYPE]).toBe(TYPE_ELEM);
+  expect(arena[SLOT_FIRST_CHILD]).toBe(NODE_SIZE); // points to hello
+  
+  // text at NODE_SIZE (8)
+  expect(arena[NODE_SIZE + SLOT_TYPE]).toBe(TYPE_TEXT);
+  expect(arena[NODE_SIZE + SLOT_DATA]).toBe('hello');
+  expect(arena[NODE_SIZE + SLOT_SUBTREE_SIZE]).toBe(NODE_SIZE);
 });
 
 test('scans nested elements', () => {

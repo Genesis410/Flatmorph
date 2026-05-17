@@ -1,5 +1,6 @@
 import { 
   NODE_SIZE, 
+  TYPE_TEXT,
   TYPE_ELEM, 
   SLOT_TYPE, 
   SLOT_FLAGS,
@@ -17,6 +18,18 @@ export function scan(html) {
   
   let i = 0;
   const len = html.length;
+
+  const linkNode = (nodeIndex) => {
+    if (stack.length > 0) {
+      const parent = stack[stack.length - 1];
+      if (parent.lastChild === -1) {
+        arena[parent.index + SLOT_FIRST_CHILD] = nodeIndex;
+      } else {
+        arena[parent.lastChild + SLOT_NEXT_SIBLING] = nodeIndex;
+      }
+      parent.lastChild = nodeIndex;
+    }
+  };
 
   while (i < len) {
     const char = html[i];
@@ -50,15 +63,7 @@ export function scan(html) {
       arena[nodeIndex + SLOT_DATA] = tagName;
 
       // Hierarchy
-      if (stack.length > 0) {
-        const parent = stack[stack.length - 1];
-        if (parent.lastChild === -1) {
-          arena[parent.index + SLOT_FIRST_CHILD] = nodeIndex;
-        } else {
-          arena[parent.lastChild + SLOT_NEXT_SIBLING] = nodeIndex;
-        }
-        parent.lastChild = nodeIndex;
-      }
+      linkNode(nodeIndex);
 
       // Attributes & self-closing detection
       let selfClosing = false;
@@ -82,8 +87,22 @@ export function scan(html) {
         stack.push({ index: nodeIndex, lastChild: -1 });
       }
     } else {
-      // Text nodes (not implemented yet)
-      i++;
+      // Text nodes
+      const start = i;
+      while (i < len && html[i] !== '<') i++;
+      const text = html.substring(start, i);
+      
+      if (text.length > 0) {
+        const nodeIndex = arena.length;
+        for (let j = 0; j < NODE_SIZE; j++) arena.push(-1);
+        
+        arena[nodeIndex + SLOT_TYPE] = TYPE_TEXT;
+        arena[nodeIndex + SLOT_FLAGS] = 0;
+        arena[nodeIndex + SLOT_DATA] = text;
+        arena[nodeIndex + SLOT_SUBTREE_SIZE] = NODE_SIZE;
+
+        linkNode(nodeIndex);
+      }
     }
   }
 
