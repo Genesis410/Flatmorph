@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { scan } from '../src/parser.js';
+import { parse } from '../src/parser.js';
 import { 
   TYPE_ELEM, 
   TYPE_TEXT,
@@ -12,15 +12,15 @@ import {
   SLOT_SUBTREE_SIZE 
 } from '../src/constants.js';
 
-test('scans simple div', () => {
-  const { arena } = scan('<div></div>');
+test('parses simple div', () => {
+  const { arena } = parse('<div></div>');
   expect(arena[SLOT_TYPE]).toBe(TYPE_ELEM);
   expect(arena[SLOT_DATA]).toBe('div');
   expect(arena[SLOT_SUBTREE_SIZE]).toBe(NODE_SIZE);
 });
 
 test('parses attributes', () => {
-  const { arena, attributeArena } = scan('<div class="foo" id="bar"></div>');
+  const { arena, attributeArena } = parse('<div class="foo" id="bar"></div>');
   const attrStart = arena[SLOT_ATTR_START];
   expect(attrStart).toBe(0);
   expect(attributeArena[attrStart]).toBe('class');
@@ -31,7 +31,7 @@ test('parses attributes', () => {
 });
 
 test('handles boolean and unquoted attributes', () => {
-  const { arena, attributeArena } = scan('<input disabled value=foo>');
+  const { arena, attributeArena } = parse('<input disabled value=foo>');
   const attrStart = arena[SLOT_ATTR_START];
   expect(attributeArena[attrStart]).toBe('disabled');
   expect(attributeArena[attrStart + 1]).toBe('');
@@ -40,8 +40,8 @@ test('handles boolean and unquoted attributes', () => {
   expect(attributeArena[attrStart + 4]).toBe(null);
 });
 
-test('scans text nodes', () => {
-  const { arena } = scan('<div>hello</div>');
+test('parses text nodes', () => {
+  const { arena } = parse('<div>hello</div>');
   // div at 0
   expect(arena[SLOT_TYPE]).toBe(TYPE_ELEM);
   expect(arena[SLOT_FIRST_CHILD]).toBe(NODE_SIZE); // points to hello
@@ -52,8 +52,8 @@ test('scans text nodes', () => {
   expect(arena[NODE_SIZE + SLOT_SUBTREE_SIZE]).toBe(NODE_SIZE);
 });
 
-test('scans nested elements', () => {
-  const { arena } = scan('<div><span></span></div>');
+test('parses nested elements', () => {
+  const { arena } = parse('<div><span></span></div>');
   // div at 0
   expect(arena[SLOT_TYPE]).toBe(TYPE_ELEM);
   expect(arena[SLOT_DATA]).toBe('div');
@@ -68,8 +68,8 @@ test('scans nested elements', () => {
   expect(arena[NODE_SIZE + SLOT_SUBTREE_SIZE]).toBe(NODE_SIZE);
 });
 
-test('scans siblings', () => {
-  const { arena } = scan('<div><span></span><a></a></div>');
+test('parses siblings', () => {
+  const { arena } = parse('<div><span></span><a></a></div>');
   // div at 0
   expect(arena[SLOT_DATA]).toBe('div');
   expect(arena[SLOT_FIRST_CHILD]).toBe(NODE_SIZE);
@@ -87,19 +87,19 @@ test('scans siblings', () => {
 });
 
 test('handles attributes with quotes', () => {
-  const { arena } = scan('<div class="foo > bar" id=\'baz\'></div>');
+  const { arena } = parse('<div class="foo > bar" id=\'baz\'></div>');
   expect(arena[SLOT_DATA]).toBe('div');
   expect(arena[SLOT_SUBTREE_SIZE]).toBe(NODE_SIZE);
 });
 
-test('scans immediate siblings', () => {
-  const { arena } = scan('<img/><span/>');
+test('parses immediate siblings', () => {
+  const { arena } = parse('<img/><span/>');
   expect(arena[SLOT_DATA]).toBe('img');
   expect(arena[NODE_SIZE + SLOT_DATA]).toBe('span');
 });
 
 test('links root-level siblings', () => {
-  const { arena } = scan('<div></div><span></span>');
+  const { arena } = parse('<div></div><span></span>');
   expect(arena[SLOT_NEXT_SIBLING]).toBe(NODE_SIZE);
   expect(arena[NODE_SIZE + SLOT_NEXT_SIBLING]).toBe(-1);
 });

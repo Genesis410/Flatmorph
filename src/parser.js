@@ -13,7 +13,7 @@ import {
 } from './constants.js';
 import { checkHeap } from './dom.js';
 
-export function scan(html) {
+export function parse(html) {
   const arena = [];
   const attrArena = [];
   const stack = []; // Elements: { idx, lastChild }

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { expect, test, beforeEach } from 'vitest';
-import { scan } from '../src/parser.js';
+import { parse } from '../src/parser.js';
 import { mount, domRefs } from '../src/dom.js';
 import { morph } from '../src/morph.js';
 import { SLOT_DOM_INDEX, STATIC, SLOT_FLAGS, SLOT_SUBTREE_SIZE } from '../src/constants.js';
@@ -10,7 +10,7 @@ beforeEach(() => {
 });
 
 test('mount creates real DOM and links it', () => {
-  const { arena } = scan('<div><span>hello</span></div>');
+  const { arena } = parse('<div><span>hello</span></div>');
   const el = mount(arena);
   
   expect(el.tagName).toBe('DIV');
@@ -25,12 +25,12 @@ test('mount creates real DOM and links it', () => {
 });
 
 test('morph updates real DOM via domRefs', () => {
-  const oldResult = scan('<div>hello</div>');
+  const oldResult = parse('<div>hello</div>');
   const el = mount(oldResult.arena);
   
   expect(el.textContent).toBe('hello');
   
-  const newResult = scan('<div>world</div>');
+  const newResult = parse('<div>world</div>');
   
   // In our simple morph, it compares by index.
   // The text node is at index 8.
@@ -42,13 +42,13 @@ test('morph updates real DOM via domRefs', () => {
 test('static nodes preserve DOM references', () => {
   // Use a string that our parser can identify as static?
   // Our current parser doesn't mark static yet, we manually set it for testing.
-  const { arena } = scan('<div>static</div>');
+  const { arena } = parse('<div>static</div>');
   const el = mount(arena);
   
   const domIndex = arena[0 + SLOT_DOM_INDEX];
   expect(domIndex).toBeDefined();
   
-  const newResult = scan('<div>static</div>');
+  const newResult = parse('<div>static</div>');
   // Manually mark as static
   newResult.arena[0 + SLOT_FLAGS] = STATIC;
   newResult.arena[0 + SLOT_SUBTREE_SIZE] = 16;

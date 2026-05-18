@@ -28,7 +28,7 @@ describe('Torture Test', () => {
     const root = FlatMorph.mount(arena);
     container.appendChild(root);
 
-    expect(container.querySelectorAll('span').length).to.equal(nodeCount);
+    expect(container.querySelectorAll('span').length).toBe(nodeCount);
 
     // Rapid morphing
     const iterations = 10;
@@ -55,7 +55,7 @@ describe('Torture Test', () => {
     console.log(`Morphed ${nodeCount} nodes ${iterations} times in ${endMorphTotal - startMorphTotal}ms`);
     console.log(`Average morph time: ${(endMorphTotal - startMorphTotal) / iterations}ms`);
 
-    expect(container.querySelector('span').textContent).to.equal(`Item ${iterations - 1}`);
+    expect(container.querySelector('span').textContent).toBe(`Item ${iterations - 1}`);
   });
 
   it('should enforce heap limit', () => {
@@ -68,7 +68,7 @@ describe('Torture Test', () => {
 
     expect(() => {
       FlatMorph.parse(html);
-    }).to.throw('FlatMorph: Heap limit exceeded');
+    }).toThrow('FlatMorph: Heap limit exceeded');
 
     FlatMorph.setHeapLimit(Infinity);
   });
