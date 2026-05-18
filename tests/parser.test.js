@@ -75,3 +75,9 @@ test('scans immediate siblings', () => {
   expect(arena[SLOT_DATA]).toBe('img');
   expect(arena[NODE_SIZE + SLOT_DATA]).toBe('span');
 });
+
+test('links root-level siblings', () => {
+  const { arena } = scan('<div></div><span></span>');
+  expect(arena[SLOT_NEXT_SIBLING]).toBe(NODE_SIZE);
+  expect(arena[NODE_SIZE + SLOT_NEXT_SIBLING]).toBe(-1);
+});

@@ -15,6 +15,7 @@ import {
 export function scan(html) {
   const arena = [];
   const stack = []; // Elements: { index, lastChild }
+  let lastRootNode = -1;
   
   let i = 0;
   const len = html.length;
@@ -28,6 +29,11 @@ export function scan(html) {
         arena[parent.lastChild + SLOT_NEXT_SIBLING] = nodeIndex;
       }
       parent.lastChild = nodeIndex;
+    } else {
+      if (lastRootNode !== -1) {
+        arena[lastRootNode + SLOT_NEXT_SIBLING] = nodeIndex;
+      }
+      lastRootNode = nodeIndex;
     }
   };
 
