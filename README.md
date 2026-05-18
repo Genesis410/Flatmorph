@@ -60,9 +60,10 @@ FlatMorph.morph(arena, next.arena, attributeArena, next.attributeArena);
 
 ---
 
-## 📊 Performance Benchmark (Torture Test)
+## 📊 Performance Benchmark
 
-Measured on a simulated low-end environment (5,000 nodes):
+### Torture Test (5,000 Nodes)
+Measured on a simulated low-end environment:
 
 | Metric | FlatMorph | Traditional VDOM |
 | :--- | :--- | :--- |
@@ -70,6 +71,15 @@ Measured on a simulated low-end environment (5,000 nodes):
 | **Morph Latency** | ~1.5ms | ~8.0ms |
 | **Heap Spike** | Flat | Spiky (GC Churn) |
 | **Recursion Depth** | 0 | N (Tree Depth) |
+
+### High-Entropy Workload (1,000 nodes, 100 cycles)
+Simulating dynamic list updates with frequent additions, removals, and attribute mutations:
+
+| Metric | Result |
+| :--- | :--- |
+| **Total Time** | 575.63 ms |
+| **Avg Latency/Cycle** | 5.76 ms |
+| **RSS Memory Increase** | 35.96 MB |
 
 ---
 
