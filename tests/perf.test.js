@@ -77,6 +77,20 @@ describe('Torture Test', () => {
     FlatMorph.setHeapLimit(Infinity);
   });
 
+  it('should account for string lengths in heap calculation', () => {
+    // Small limit that would fit arena but not the strings
+    FlatMorph.setHeapLimit(500);
+
+    const longString = 'a'.repeat(300); // 300 chars * 2 = 600 bytes
+    const html = `<div>${longString}</div>`;
+
+    expect(() => {
+      FlatMorph.parse(html);
+    }).toThrow('FlatMorph: Heap limit exceeded');
+
+    FlatMorph.setHeapLimit(Infinity);
+  });
+
   it('should skip static subtrees during morph', () => {
     const html1 = '<div><span>1</span></div>';
     const html2 = '<div><span>2</span></div>';

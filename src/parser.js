@@ -19,12 +19,13 @@ export function parse(html) {
   const attrArena = [];
   const stack = []; // Elements: { idx, lastChild }
   let lastRoot = -1;
+  let dataStringsLen = 0;
   
   let i = 0;
   const len = html.length;
 
   const link = (idx) => {
-    checkHeap(arena.length, attrArena.length);
+    checkHeap(arena.length, attrArena.length, dataStringsLen);
     if (stack.length > 0) {
       const parent = stack[stack.length - 1];
       if (parent.lastChild === -1) {
@@ -71,6 +72,7 @@ export function parse(html) {
       arena[idx + SLOT_TYPE] = TYPE_ELEM;
       arena[idx + SLOT_FLAGS] = STATIC;
       arena[idx + SLOT_DATA] = tagName;
+      dataStringsLen += tagName.length;
 
       // Hierarchy
       link(idx);
@@ -101,6 +103,7 @@ export function parse(html) {
             attrStart = attrArena.length;
           }
           attrArena.push(name);
+          dataStringsLen += name.length;
           
           // Skip whitespace around '='
           while (i < len && /\s/.test(html[i])) i++;
@@ -114,13 +117,17 @@ export function parse(html) {
               i++;
               const valStart = i;
               while (i < len && html[i] !== quote) i++;
-              attrArena.push(html.substring(valStart, i));
+              const value = html.substring(valStart, i);
+              attrArena.push(value);
+              dataStringsLen += value.length;
               if (i < len) i++; // skip closing quote
             } else {
               // Unquoted value
               const valStart = i;
               while (i < len && !/[\s>]/.test(html[i])) i++;
-              attrArena.push(html.substring(valStart, i));
+              const value = html.substring(valStart, i);
+              attrArena.push(value);
+              dataStringsLen += value.length;
             }
           } else {
             // Boolean attribute
@@ -154,6 +161,7 @@ export function parse(html) {
         arena[idx + SLOT_TYPE] = TYPE_TEXT;
         arena[idx + SLOT_FLAGS] = STATIC;
         arena[idx + SLOT_DATA] = text;
+        dataStringsLen += text.length;
         arena[idx + SLOT_SUBTREE_SIZE] = NODE_SIZE;
 
         link(idx);
@@ -167,6 +175,6 @@ export function parse(html) {
     arena[entry.idx + SLOT_SUBTREE_SIZE] = arena.length - entry.idx;
   }
 
-  return { arena, attributeArena: attrArena };
+  return { arena, attributeArena: attrArena, dataStringsLen };
 }
 

@@ -16,7 +16,17 @@ export function morph(oldArena, newArena, oldAttrArena, newAttrArena, patch) {
   const newLen = newArena.length;
   const oldLen = oldArena.length;
 
-  checkHeap(newLen, newAttrArena.length);
+  let dataStringsLen = 0;
+  for (let j = 0; j < newArena.length; j += NODE_SIZE) {
+    const data = newArena[j + SLOT_DATA];
+    if (typeof data === 'string') dataStringsLen += data.length;
+  }
+  for (let j = 0; j < newAttrArena.length; j++) {
+    const val = newAttrArena[j];
+    if (typeof val === 'string') dataStringsLen += val.length;
+  }
+
+  checkHeap(newLen, newAttrArena.length, dataStringsLen);
 
   while (i < newLen) {
     const flags = newArena[i + SLOT_FLAGS];
@@ -26,7 +36,10 @@ export function morph(oldArena, newArena, oldAttrArena, newAttrArena, patch) {
       const skip = newArena[i + SLOT_SUBTREE_SIZE];
       // Even if static, we need to preserve the DOM reference if it exists
       if (i < oldLen) {
-        newArena[i + SLOT_DOM_INDEX] = oldArena[i + SLOT_DOM_INDEX];
+        const end = Math.min(i + skip, oldLen);
+        for (let k = i; k < end; k += NODE_SIZE) {
+          newArena[k + SLOT_DOM_INDEX] = oldArena[k + SLOT_DOM_INDEX];
+        }
       }
       i += skip > 0 ? skip : NODE_SIZE;
       continue;

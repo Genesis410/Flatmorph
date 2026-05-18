@@ -12,8 +12,15 @@ export function setHeapLimit(bytes) {
   heapLimit = bytes;
 }
 
-export function checkHeap(arenaLen, attrLen) {
-  if ((arenaLen + attrLen) * 8 > heapLimit) {
+export function cleanupNode(idx) {
+  if (idx !== -1 && idx < domRefs.length) {
+    domRefs[idx] = null;
+  }
+}
+
+export function checkHeap(arenaLen, attrLen, dataStringsLen = 0) {
+  const totalBytes = (arenaLen + attrLen) * 8 + (dataStringsLen * 2);
+  if (totalBytes > heapLimit) {
     throw new Error('FlatMorph: Heap limit exceeded');
   }
 }
@@ -121,6 +128,8 @@ export function updateNode(arena, nodeIndex, attrArena) {
         el.parentNode.replaceChild(newEl, el);
       }
       
+      cleanupNode(domIndex);
+
       // Update reference
       domRefs[domIndex] = newEl;
       
