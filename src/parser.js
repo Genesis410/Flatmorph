@@ -2,6 +2,7 @@ import {
   NODE_SIZE, 
   TYPE_TEXT,
   TYPE_ELEM, 
+  STATIC,
   SLOT_TYPE, 
   SLOT_FLAGS,
   SLOT_DATA, 
@@ -68,7 +69,7 @@ export function parse(html) {
       for (let j = 0; j < NODE_SIZE; j++) arena.push(-1);
       
       arena[idx + SLOT_TYPE] = TYPE_ELEM;
-      arena[idx + SLOT_FLAGS] = 0;
+      arena[idx + SLOT_FLAGS] = STATIC;
       arena[idx + SLOT_DATA] = tagName;
 
       // Hierarchy
@@ -151,7 +152,7 @@ export function parse(html) {
         for (let j = 0; j < NODE_SIZE; j++) arena.push(-1);
         
         arena[idx + SLOT_TYPE] = TYPE_TEXT;
-        arena[idx + SLOT_FLAGS] = 0;
+        arena[idx + SLOT_FLAGS] = STATIC;
         arena[idx + SLOT_DATA] = text;
         arena[idx + SLOT_SUBTREE_SIZE] = NODE_SIZE;
 

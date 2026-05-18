@@ -45,6 +45,10 @@ describe('Torture Test', () => {
       nextHtml += '</div>';
 
       const { arena: nextArena, attributeArena: nextAttrArena } = FlatMorph.parse(nextHtml);
+      // Clear STATIC flags for the torture test because it's testing rapid updates
+      for (let k = 0; k < nextArena.length; k += FlatMorph.NODE_SIZE) {
+        nextArena[k + FlatMorph.SLOT_FLAGS] &= ~FlatMorph.STATIC;
+      }
       FlatMorph.morph(currentArena, nextArena, currentAttrArena, nextAttrArena);
       
       currentArena = nextArena;
@@ -71,5 +75,27 @@ describe('Torture Test', () => {
     }).toThrow('FlatMorph: Heap limit exceeded');
 
     FlatMorph.setHeapLimit(Infinity);
+  });
+
+  it('should skip static subtrees during morph', () => {
+    const html1 = '<div><span>1</span></div>';
+    const html2 = '<div><span>2</span></div>';
+
+    const { arena: arena1, attributeArena: attr1 } = FlatMorph.parse(html1);
+    const { arena: arena2, attributeArena: attr2 } = FlatMorph.parse(html2);
+
+    // Verify both are marked STATIC
+    expect(arena2[FlatMorph.SLOT_FLAGS] & FlatMorph.STATIC).toBeTruthy();
+
+    const patchCalls = [];
+    const patch = (idx, type, data) => {
+      patchCalls.push({ idx, type, data });
+    };
+
+    // This should skip everything because the root div is STATIC
+    FlatMorph.morph(arena1, arena2, attr1, attr2, patch);
+
+    // patchCalls should be empty because it skipped the root div
+    expect(patchCalls.length).toBe(0);
   });
 });

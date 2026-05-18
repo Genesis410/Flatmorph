@@ -4,13 +4,28 @@ import {
   TYPE_ELEM, 
   TYPE_TEXT,
   NODE_SIZE, 
+  STATIC,
   SLOT_TYPE, 
+  SLOT_FLAGS,
   SLOT_DATA, 
   SLOT_FIRST_CHILD, 
   SLOT_NEXT_SIBLING, 
   SLOT_ATTR_START,
   SLOT_SUBTREE_SIZE 
 } from '../src/constants.js';
+
+test('sets STATIC flag on all parsed nodes', () => {
+  const { arena } = parse('<div><span>hello</span></div>');
+  
+  // div
+  expect(arena[SLOT_FLAGS] & STATIC).toBeTruthy();
+  
+  // span
+  expect(arena[NODE_SIZE + SLOT_FLAGS] & STATIC).toBeTruthy();
+  
+  // hello
+  expect(arena[2 * NODE_SIZE + SLOT_FLAGS] & STATIC).toBeTruthy();
+});
 
 test('parses simple div', () => {
   const { arena } = parse('<div></div>');

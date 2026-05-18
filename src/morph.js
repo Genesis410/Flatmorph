@@ -38,14 +38,15 @@ export function morph(oldArena, newArena, oldAttrArena, newAttrArena, patch) {
       const domIndex = oldArena[i + SLOT_DOM_INDEX];
       newArena[i + SLOT_DOM_INDEX] = domIndex;
       
-      if (newArena[i + SLOT_DATA] !== oldArena[i + SLOT_DATA]) {
-        if (patch) patch(i, 'update', newArena[i + SLOT_DATA]);
-        updateNode(newArena, i);
+      // Always call updateNode if not static to handle attribute changes or tag changes
+      if (patch && newArena[i + SLOT_DATA] !== oldArena[i + SLOT_DATA]) {
+        patch(i, 'update', newArena[i + SLOT_DATA]);
       }
+      updateNode(newArena, i, newAttrArena);
     } else {
       // New nodes beyond the old arena length
       if (patch) patch(i, 'create', newArena[i + SLOT_DATA]);
-      createNode(newArena, i);
+      createNode(newArena, i, newAttrArena);
     }
 
     i += NODE_SIZE;
