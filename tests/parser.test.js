@@ -8,6 +8,7 @@ import {
   SLOT_DATA, 
   SLOT_FIRST_CHILD, 
   SLOT_NEXT_SIBLING, 
+  SLOT_ATTR_START,
   SLOT_SUBTREE_SIZE 
 } from '../src/constants.js';
 
@@ -16,6 +17,27 @@ test('scans simple div', () => {
   expect(arena[SLOT_TYPE]).toBe(TYPE_ELEM);
   expect(arena[SLOT_DATA]).toBe('div');
   expect(arena[SLOT_SUBTREE_SIZE]).toBe(NODE_SIZE);
+});
+
+test('parses attributes', () => {
+  const { arena, attributeArena } = scan('<div class="foo" id="bar"></div>');
+  const attrStart = arena[SLOT_ATTR_START];
+  expect(attrStart).toBe(0);
+  expect(attributeArena[attrStart]).toBe('class');
+  expect(attributeArena[attrStart + 1]).toBe('foo');
+  expect(attributeArena[attrStart + 2]).toBe('id');
+  expect(attributeArena[attrStart + 3]).toBe('bar');
+  expect(attributeArena[attrStart + 4]).toBe(null); // terminator
+});
+
+test('handles boolean and unquoted attributes', () => {
+  const { arena, attributeArena } = scan('<input disabled value=foo>');
+  const attrStart = arena[SLOT_ATTR_START];
+  expect(attributeArena[attrStart]).toBe('disabled');
+  expect(attributeArena[attrStart + 1]).toBe('');
+  expect(attributeArena[attrStart + 2]).toBe('value');
+  expect(attributeArena[attrStart + 3]).toBe('foo');
+  expect(attributeArena[attrStart + 4]).toBe(null);
 });
 
 test('scans text nodes', () => {
